@@ -83,11 +83,11 @@ gulp.task('scss', function() {
       .pipe(browserSync.stream());
 });
 
+
 gulp.task('watch', function() {
   gulp.watch('src/scss/**', gulp.series(gulp.parallel("scss")));
   gulp.watch('src/typescript/**', gulp.series(gulp.parallel("bundle")));
-  gulp.watch(LOCAL_THEMES_FOLDER + "/assets/js/bundle.js").on("change", browserSync.reload);
-  gulp.watch(LOCAL_THEMES_FOLDER + "/**.php").on("change", browserSync.reload);
+  gulp.watch(LOCAL_THEMES_FOLDER + "/**").on("change", gulp.series(gulp.parallel("copy-files"), browserSync.reload));
 });
  
 gulp.task('default', gulp.series(gulp.parallel('bundle', 'scss'), gulp.parallel('copy-files','watch', 'browser-sync')));
