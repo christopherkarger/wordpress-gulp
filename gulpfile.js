@@ -8,17 +8,32 @@ var uglify = require("gulp-uglify");
 var cssnano = require('gulp-cssnano')
 var browserSync = require('browser-sync').create();
 var sass = require('gulp-sass');
+var argv = require('yargs').argv;
+var gulpif = require('gulp-if');
+var clean = require('gulp-clean');
+
+
 
 var THEME_NAME = "twentytwenty";
 var THEMES_FOLDER = "C:\\xampp\\htdocs\\wordpress\\wp-content\\themes\\" + THEME_NAME;
+var LOCAL_THEMES_FOLDER = 'src/theme/' + THEME_NAME;
 
 
-var paths = {
-  theme: ["src/theme/" + THEME_NAME + '/**'],
-};
 
 gulp.task("copy-files", function () {
-  return gulp.src(paths.theme).pipe(gulp.dest(THEMES_FOLDER));
+  var files =  [LOCAL_THEMES_FOLDER + '/**'];
+  return gulp.src(files).pipe(gulp.dest(THEMES_FOLDER));
+});
+
+
+gulp.task('clean', function () {
+  var files = [
+    LOCAL_THEMES_FOLDER + '/assets/js/**.map',
+    LOCAL_THEMES_FOLDER + '/assets/css/**.map'
+  ];
+
+  return gulp.src(files, {read: false})
+      .pipe(clean());
 });
 
 
@@ -40,10 +55,10 @@ gulp.task(
       .bundle()
       .pipe(source("bundle.js"))
       .pipe(buffer())
-      .pipe(sourcemaps.init({ loadMaps: true }))
+      .pipe(gulpif(!argv.build, sourcemaps.init({ loadMaps: true })))
       .pipe(uglify())
-      .pipe(sourcemaps.write("./"))
-      .pipe(gulp.dest("src/theme/" + THEME_NAME + '/assets/js'));
+      .pipe(gulpif(!argv.build, sourcemaps.write('.')))
+      .pipe(gulp.dest(LOCAL_THEMES_FOLDER + '/assets/js'));
   }
 );
 
@@ -59,21 +74,22 @@ gulp.task('browser-sync', function() {
 
 gulp.task('scss', function() {
   return gulp.src("src/scss/*.scss")
-      .pipe(sourcemaps.init())
+      .pipe(gulpif(!argv.build, sourcemaps.init()))
       .pipe(sass().on('error', sass.logError))
       .pipe(cssnano())
-      .pipe(sourcemaps.write('./'))
-      .pipe(gulp.dest("src/theme/" + THEME_NAME + '/assets/css'))
+      .pipe(gulpif(!argv.build, sourcemaps.write('.')))
+      .pipe(gulp.dest(LOCAL_THEMES_FOLDER + '/assets/css'))
       .pipe(browserSync.stream());
 });
 
 gulp.task('watch', function() {
   gulp.watch('src/scss/**', gulp.series(gulp.parallel("scss")));
   gulp.watch('src/typescript/**', gulp.series(gulp.parallel("bundle")));
-  gulp.watch("src/theme/" + THEME_NAME + "/assets/js/bundle.js").on("change", browserSync.reload);
-  gulp.watch("src/theme/" + THEME_NAME + "/**.php").on("change", browserSync.reload);
+  gulp.watch(LOCAL_THEMES_FOLDER + "/assets/js/bundle.js").on("change", browserSync.reload);
+  gulp.watch(LOCAL_THEMES_FOLDER + "/**.php").on("change", browserSync.reload);
 });
  
 gulp.task('default', gulp.series(gulp.parallel('bundle', 'scss'), gulp.parallel('copy-files','watch', 'browser-sync')));
+gulp.task('build', gulp.series(gulp.parallel('bundle', 'scss', 'clean'), gulp.parallel('copy-files')));
 
 
