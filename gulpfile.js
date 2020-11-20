@@ -29,11 +29,12 @@ gulp.task("copy-files", function () {
 gulp.task('clean', function () {
   var files = [
     LOCAL_THEMES_FOLDER + '/assets/js/**.map',
-    LOCAL_THEMES_FOLDER + '/assets/css/**.map'
+    LOCAL_THEMES_FOLDER + '/assets/css/**.map',
+    THEMES_FOLDER
   ];
 
   return gulp.src(files, {read: false})
-      .pipe(clean());
+      .pipe(clean({force: true}));
 });
 
 
