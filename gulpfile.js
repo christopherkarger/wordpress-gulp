@@ -68,7 +68,7 @@ gulp.task('scss', function() {
 });
 
 gulp.task('watch', function() {
-  gulp.watch('src/scss/*.scss', gulp.series(gulp.parallel("scss")));
+  gulp.watch('src/scss/**', gulp.series(gulp.parallel("scss")));
   gulp.watch('src/typescript/**', gulp.series(gulp.parallel("bundle")));
   gulp.watch("src/theme/" + THEME_NAME + "/assets/js/bundle.js").on("change", browserSync.reload);
   gulp.watch("src/theme/" + THEME_NAME + "/**.php").on("change", browserSync.reload);
