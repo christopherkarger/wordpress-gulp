@@ -9,12 +9,16 @@ var cssnano = require('gulp-cssnano')
 var browserSync = require('browser-sync').create();
 var sass = require('gulp-sass');
 
+var THEME_NAME = "twentytwenty";
+var THEMES_FOLDER = "C:\\xampp\\htdocs\\wordpress\\wp-content\\themes\\" + THEME_NAME;
+
+
 var paths = {
-  pages: ["src/*.html"],
+  theme: ["src/theme/" + THEME_NAME + '/**'],
 };
 
 gulp.task("copy-files", function () {
-  return gulp.src(paths.pages).pipe(gulp.dest("dist"));
+  return gulp.src(paths.theme).pipe(gulp.dest(THEMES_FOLDER));
 });
 
 
@@ -39,15 +43,15 @@ gulp.task(
       .pipe(sourcemaps.init({ loadMaps: true }))
       .pipe(uglify())
       .pipe(sourcemaps.write("./"))
-      .pipe(gulp.dest("dist/assets"));
+      .pipe(gulp.dest("src/theme/" + THEME_NAME + '/assets/js'));
   }
 );
 
 
 gulp.task('browser-sync', function() {
   browserSync.init({
-      server: "./dist",
-      //proxy: "localhost/wordpress" 
+      //server: "./dist",
+      proxy: "localhost/wordpress",
 
       port: 4000
   });
@@ -59,16 +63,17 @@ gulp.task('scss', function() {
       .pipe(sass().on('error', sass.logError))
       .pipe(cssnano())
       .pipe(sourcemaps.write('./'))
-      .pipe(gulp.dest("dist/assets/"))
+      .pipe(gulp.dest("src/theme/" + THEME_NAME + '/assets/css'))
       .pipe(browserSync.stream());
 });
 
 gulp.task('watch', function() {
   gulp.watch('src/scss/*.scss', gulp.series(gulp.parallel("scss")));
   gulp.watch('src/typescript/**', gulp.series(gulp.parallel("bundle")));
-  gulp.watch("dist/assets/bundle.js").on("change", browserSync.reload);
+  gulp.watch("src/theme/" + THEME_NAME + "/assets/js/bundle.js").on("change", browserSync.reload);
+  gulp.watch("src/theme/" + THEME_NAME + "/**.php").on("change", browserSync.reload);
 });
  
-gulp.task('default', gulp.series(gulp.parallel('copy-files', 'bundle', 'scss' ), gulp.parallel('watch', 'browser-sync')));
+gulp.task('default', gulp.series(gulp.parallel('bundle', 'scss'), gulp.parallel('copy-files','watch', 'browser-sync')));
 
 
